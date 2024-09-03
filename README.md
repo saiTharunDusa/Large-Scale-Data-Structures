@@ -6,8 +6,6 @@ This repository contains assignments and materials for the graduate-level course
 
 ### Course Objectives
 
-Upon successful completion of this course, students will be able to:
-
 1. Design, implement, and test custom classes and functions in an object-oriented C++ setting
 2. Design and implement custom data structures
 3. Understand memory management, access, and search time properties of covered data structures
