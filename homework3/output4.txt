@@ -1,0 +1,11 @@
+The number of arguments passed: 5
+The first argument is: /scratch/sd2672/homework3/./source
+The second argument is: /common/contrib/classroom/inf503/human_reads_trimmed.fa
+The third argument is: /common/contrib/classroom/inf503/genomes/human.txt
+The fourth argument is: partA
+The fifth argument is: 200000000
+hash table size - 200000000
+The total no of queries is 100000000
+The time taken to populate the hash table of size 200000000 is 100.509 seconds
+
+The total no of collisions while populating the hash are 41393877

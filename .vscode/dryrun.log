@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/USER/Desktop/Files From d.localized/NAU/INF-503/LSDS Assignments'
+make: Leaving directory `/Users/USER/Desktop/Files From d.localized/NAU/INF-503/LSDS Assignments'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+

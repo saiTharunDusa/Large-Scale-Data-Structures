@@ -1,0 +1,10 @@
+The number of arguments passed: 5
+The first argument is: /scratch/sd2672/homework4/./source
+The second argument is: /common/contrib/classroom/inf503/human_reads_version2.fa
+The third argument is: /common/contrib/classroom/inf503/genomes/human.txt
+The fourth argument is: partA
+The fifth argument is: problem1
+The size of the genome is 3057186663
+The total no of queries is 100000000
+Time taken for randomly picked 50 fragments: 63935.8 seconds
+The total number of hits with up to 2 mismatches for randomly picked 50 fragments: 12

@@ -1,0 +1,21 @@
+The number of arguments passed: 5
+The first argument is: /scratch/sd2672/homework3/./source
+The second argument is: /common/contrib/classroom/inf503/human_reads_trimmed.fa
+The third argument is: /common/contrib/classroom/inf503/genomes/human.txt
+The fourth argument is: partB
+The fifth argument is: 200000000
+hash table size - 200000000
+The total no of queries is 100000000
+the first 10 fragments of the subject dataset that you found within the Query_HT
+CTAACCCTAACCCTAA
+TAACCCTAACCCTAAC
+AACCCTAACCCTAACC
+ACCCTAACCCTAACCC
+CCCTAACCCTAACCCT
+CCTAACCCTAACCCTA
+CTAACCCTAACCCTAA
+TAACCCTAACCCTAAC
+AACCCTAACCCTAACC
+ACCCTAACCCTAACCC
+The time taken to search for every possible 16-character long fragment of the subject dataset within the query dataset is 3146.31 seconds.
+Total no of fragments found is 848542709
