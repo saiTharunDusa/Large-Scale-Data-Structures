@@ -48,15 +48,3 @@ The course is divided into three main modules:
 - C/C++ compiler
 - Access to NAU's Monsoon cluster for assignment compilation and execution
 
-## Assessment
-
-- Homework assignments
-- 4-5 quizzes (15-20 minutes each)
-- 3 module exams (only the highest two scores count towards the final grade)
-- Final exam
-
-## Note
-
-This course is designed as a mastery-level course for the Computer Science Masters program and a core foundational course for the Informatics Ph.D. program.
-
-For more detailed information, please refer to the individual assignment files and course materials within this repository.
