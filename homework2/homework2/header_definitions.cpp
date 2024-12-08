@@ -243,10 +243,8 @@ string Queries_AR ::Query_name(long long int index)
 
 Queries_AR::~Queries_AR()
 {
-    for (long long int i = 0; i < maxQueriesLen; i++)
-    {
-        delete this->Query_Fragments[i];
+    for (int i = 0; i < 100000000; ++i) {
+        delete[] this->Query_Fragments[i]; // Assuming these were allocated with new[]
     }
     delete[] this->Query_Fragments;
-    cout << "Destructor executed successfully!" << endl;
 }
