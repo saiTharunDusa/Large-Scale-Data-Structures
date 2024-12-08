@@ -1,4 +1,7 @@
 #include <deepstate/DeepState.hpp>
+#include <deepstate/DeepState.h>
+#include <string>
+#include <cstring>
 #include "header.h"
 
 using namespace deepstate;
@@ -11,7 +14,7 @@ protected:
         static const char nucleotides[] = {'A', 'C', 'G', 'T'};
         std::string fragment;
         for (int i = 0; i < 16; i++) {
-            fragment += nucleotides[DeepState_Choose(4)];
+            fragment += nucleotides[DeepState_IntInRange(0, 3)];
         }
         return fragment;
     }
@@ -25,8 +28,10 @@ TEST_F(QueriesHTTest, InsertAndSearchFragment) {
 
     // Generate a random fragment and insert it into the hash table
     std::string fragment = GenerateRandomFragment();
-    char fragmentArr[17];
-    strcpy(fragmentArr, fragment.c_str());
+    char fragmentArr[17] = {0};  // Ensure the buffer is null-terminated
+    strncpy(fragmentArr, fragment.c_str(), 16);
+    fragmentArr[16] = '\0';  // Explicitly null-terminate
+
     ht.insert(fragmentArr, collisions);
 
     // Verify that the fragment can be found in the hash table
@@ -42,8 +47,10 @@ TEST_F(QueriesHTTest, InsertCollisions) {
     // Insert multiple random fragments to increase the chance of collisions
     for (int i = 0; i < 50; i++) {
         std::string fragment = GenerateRandomFragment();
-        char fragmentArr[17];
-        strcpy(fragmentArr, fragment.c_str());
+        char fragmentArr[17] = {0};
+        strncpy(fragmentArr, fragment.c_str(), 16);
+        fragmentArr[16] = '\0';
+
         ht.insert(fragmentArr, collisions);
     }
 
@@ -58,8 +65,9 @@ TEST_F(QueriesHTTest, SearchInEmptyTable) {
 
     // Generate a random fragment and attempt to search for it
     std::string fragment = GenerateRandomFragment();
-    char fragmentArr[17];
-    strcpy(fragmentArr, fragment.c_str());
+    char fragmentArr[17] = {0};
+    strncpy(fragmentArr, fragment.c_str(), 16);
+    fragmentArr[16] = '\0';
 
     ASSERT_FALSE(ht.search(fragmentArr)) << "Found fragment in an empty hash table, which is unexpected.";
 }
@@ -70,10 +78,10 @@ TEST_F(QueriesHTTest, RadixValComputation) {
     Queries_HT ht(hashTableSize);
 
     std::string fragment = "ACGTACGTACGTACGT";
-    char fragmentArr[17];
-    strcpy(fragmentArr, fragment.c_str());
+    char fragmentArr[17] = {0};
+    strncpy(fragmentArr, fragment.c_str(), 16);
+    fragmentArr[16] = '\0';
 
     long long int radixValue = ht.radixVal(fragmentArr);
     ASSERT_GE(radixValue, 0) << "Radix value should be non-negative.";
 }
-
