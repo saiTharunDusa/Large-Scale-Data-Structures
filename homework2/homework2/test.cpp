@@ -1,100 +1,82 @@
 #include <deepstate/DeepState.hpp>
+#include <deepstate/DeepState.h>
 #include "header.h"
-#include <cstring>
+#include <fstream>
+
+// This test file is based on the style of the provided DeepState test code snippet.
+// It tests the Queries_AR class by creating a small, controlled input file and verifying
+// that queries can be read, searched, sorted, and retrieved correctly.
 
 using namespace deepstate;
 
-// Symbolic test for search method
-TEST(SearchTest, SymbolicSearchTest) {
-    // Create test object
-    Queries_AR queries;
-    queries.Read_Queries(); 
+class QueriesARTest : public Test {
+protected:
+    std::string queries_path;
+    Queries_AR *queries_obj;
 
-    // Generate symbolic input
-    char target[33];  // 32 chars + null terminator
-    for (int i = 0; i < 32; i++) {
-        target[i] = DeepState_Char();
-    }
-    target[32] = '\0';  // Ensure null termination
-    
-    // Perform search
-    long long int result = queries.search(target);
-    
-    // Basic assertions
-    ASSERT(result >= -1);
-    ASSERT(result < maxQueriesLen);
-}
+    virtual void SetUp() {
+        // Create a temporary queries file with known fragments
+        queries_path = "test_queries.fa";
+        std::ofstream out(queries_path);
+        // Insert a few lines with '>' to simulate FASTA headers
+        out << ">query_header_1" << "\n"
+            << "ACGTACGTACGTACGTACGTACGTACGTACGT" << "\n"
+            << ">query_header_2" << "\n"
+            << "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG" << "\n"
+            << ">query_header_3" << "\n"
+            << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << "\n"
+            << ">query_header_4" << "\n"
+            << "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" << "\n";
+        out.close();
 
-// Symbolic test for binary search
-TEST(SearchTest, SymbolicBinarySearchTest) {
-    // Create sorted queries
-    Queries_AR queries;
-    queries.Read_Queries();
-    queries.sort();
-
-    // Generate symbolic input
-    char target[33];  // 32 chars + null terminator
-    for (int i = 0; i < 32; i++) {
-        target[i] = DeepState_Char();
-    }
-    target[32] = '\0';  // Ensure null termination
-    
-    // Perform binary search
-    long long int result = queries.binarySearch(target);
-    
-    // Basic assertions
-    ASSERT(result >= -1);
-    ASSERT(result < maxQueriesLen);
-}
-
-// Test genome sequence reading
-TEST(GenomeTest, GenomeReadTest) {
-    // Generate symbolic filepath
-    char filepath[256];
-    for (int i = 0; i < 255; i++) {
-        filepath[i] = DeepState_Char();
-    }
-    filepath[255] = '\0';
-
-    // Genome buffer
-    char genome[4000000000];
-    long long int genomeIndex = 0;
-
-    // Attempt to read genome sequence (will likely fail for random paths)
-    try {
-        genomeSeqRead(filepath, genome, genomeIndex);
-    } catch (...) {
-        // Expect file open failure for random paths
+        queries_obj = new Queries_AR(queries_path);
+        queries_obj->Read_Queries();
     }
 
-    // Basic sanity checks
-    ASSERT(genomeIndex >= 0);
+    virtual void TearDown() {
+        // Cleanup
+        if (queries_obj) {
+            delete queries_obj;
+            queries_obj = nullptr;
+        }
+        remove(queries_path.c_str());
+    }
+};
+
+TEST_F(QueriesARTest, SearchExistingFragment) {
+    // Search for a known fragment
+    char target[33] = "ACGTACGTACGTACGTACGTACGTACGTACGT";
+    ASSERT_TRUE(queries_obj->search(target) != -1)
+        << "Known fragment not found using linear search.";
 }
 
-// Memory allocation test
-TEST(QueriesTest, MemoryAllocationTest) {
-    Queries_AR* queries = new Queries_AR();
-    
-    // Verify object creation
-    ASSERT(queries != nullptr);
-
-    // Cleanup
-    delete queries;
+TEST_F(QueriesARTest, SearchNonExistingFragment) {
+    // Search for a random fragment that doesn't exist
+    char target[33] = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC";
+    ASSERT_TRUE(queries_obj->search(target) == -1)
+        << "Non-existing fragment found unexpectedly.";
 }
 
-// Destructor behavior test
-TEST(QueriesTest, DestructorTest) {
-    // Scope-based test to check destructor behavior
-    {
-        Queries_AR queries;
-        queries.Read_Queries();
-    } // Destructor called here
-    
-    // If we reach here without crash, destructor worked
-    ASSERT(true);
+TEST_F(QueriesARTest, BinarySearchExistingFragment) {
+    // Sort the queries first
+    queries_obj->sort();
+    char target[33] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    ASSERT_TRUE(queries_obj->binarySearch(target) != -1)
+        << "Known fragment not found using binary search after sorting.";
 }
 
-// Entry point for DeepState
-int main(int argc, char** argv) {
-    return DeepState_Run();
+TEST_F(QueriesARTest, BinarySearchNonExistingFragment) {
+    queries_obj->sort();
+    char target[33] = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC";
+    ASSERT_TRUE(queries_obj->binarySearch(target) == -1)
+        << "Non-existing fragment found unexpectedly by binary search.";
+}
+
+TEST_F(QueriesARTest, QueryNameRetrieval) {
+    // Ensure we can retrieve a known fragment by index
+    char target[33] = "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT";
+    long long idx = queries_obj->search(target);
+    ASSERT_TRUE(idx != -1) << "Target fragment not found.";
+    ASSERT_EQ(queries_obj->Query_name(idx), std::string(target))
+        << "Returned fragment does not match the expected query.";
 }
