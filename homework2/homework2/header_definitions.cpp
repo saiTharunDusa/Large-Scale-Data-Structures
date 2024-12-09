@@ -241,10 +241,11 @@ string Queries_AR ::Query_name(long long int index)
     Destructor: This helps in deallocating the memory if that memory was allocated dynamically.
 */
 
-Queries_AR::~Queries_AR()
-{
-    for (int i = 0; i < 100000000; ++i) {
-        delete[] this->Query_Fragments[i]; // Assuming these were allocated with new[]
+~Queries_AR() {
+    for (int i = 0; i < maxQueriesLen; ++i) {
+        if (Query_Fragments[i] != nullptr) {
+            delete[] Query_Fragments[i];
+            Query_Fragments[i] = nullptr;
+        }
     }
-    delete[] this->Query_Fragments;
 }
