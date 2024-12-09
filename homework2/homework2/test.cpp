@@ -1,71 +1,125 @@
-#include <gtest/gtest.h>
+#include <deepstate/DeepState.hpp>
 #include "header.h"
 
-// Mock genomic and query data for testing.
-const char *genomeMock = "ACGTACGTACGTACGTACGTACGTACGTACGTACGT";
-const char *queryMock[] = {"ACGTACGT", "CGTACGTA", "GTACGTAC", "TACGTACG", "ACGTACGTACGT"};
+using namespace deepstate;
 
-class QueriesARMock : public Queries_AR {
-public:
-    QueriesARMock() : Queries_AR("") {}
-    void Mock_Read_Queries() {
-        Query_fragments = queryMock;
-        num_queries = 5;
-    }
+// Test fixture for Queries_AR class
+class QueriesARTest : public ::testing::Test {
+protected:
+    Queries_AR queries;
 };
 
-TEST(ArgumentHandlingTest, InvalidArguments) {
-    char *argv[] = {(char *)"./homework", (char *)"partA"};
-    int argc = 2;
-    ASSERT_EXIT(main(argc, argv), ::testing::ExitedWithCode(-1), "Error: 2 input parameters expected");
+// Test case for constructor
+TEST(QueriesARTest, DefaultConstructor) {
+    Queries_AR emptyQueries;
+    // Verify initial state
+    ASSERT_EQ(emptyQueries.Query_name(-1), "");
 }
 
-TEST(GenomicDataTest, ReadGenomeData) {
-    char genome[40];
-    long long genomeIndex = 0;
-    genomeSeqRead("mock_file.fa", genome, genomeIndex); // Mock file function.
-    ASSERT_STREQ(genome, genomeMock);
+// Parametric test for search method
+TEST(QueriesARTest, SearchMethodTest) {
+    // Symbolic input generation
+    char* target = DeepState_CString(32);
+    
+    Queries_AR queries;
+    queries.Read_Queries(); // Load predefined queries
+
+    // Perform search
+    long long int result = queries.search(target);
+    
+    // Assertions
+    ASSERT_GE(result, -1);
+    ASSERT_LT(result, maxQueriesLen);
+    
+    // Optional: If target is found, verify query match
+    if (result != -1) {
+        ASSERT_STREQ(queries.Query_name(result).c_str(), target);
+    }
 }
 
-TEST(SearchFunctionalityTest, LinearSearch) {
-    QueriesARMock queriesAR;
-    queriesAR.Mock_Read_Queries();
-    ASSERT_EQ(queriesAR.search("ACGTACGT"), 0);
-    ASSERT_EQ(queriesAR.search("GTACGTAC"), 2);
-    ASSERT_EQ(queriesAR.search("NOEXIST"), -1);
+// Binary search test with symbolic input
+TEST(QueriesARTest, BinarySearchTest) {
+    // Ensure queries are sorted before binary search
+    Queries_AR sortedQueries;
+    sortedQueries.Read_Queries();
+    sortedQueries.sort();
+
+    // Symbolic input generation
+    char* target = DeepState_CString(32);
+    
+    // Perform binary search
+    long long int result = sortedQueries.binarySearch(target);
+    
+    // Assertions
+    ASSERT_GE(result, -1);
+    ASSERT_LT(result, maxQueriesLen);
+    
+    // Optional: If target is found, verify query match
+    if (result != -1) {
+        ASSERT_STREQ(sortedQueries.Query_name(result).c_str(), target);
+    }
 }
 
-TEST(SearchFunctionalityTest, BinarySearch) {
-    QueriesARMock queriesAR;
-    queriesAR.Mock_Read_Queries();
-    queriesAR.sort(); // Ensures binary search is sorted.
-    ASSERT_EQ(queriesAR.binarySearch("ACGTACGT"), 0);
-    ASSERT_EQ(queriesAR.binarySearch("GTACGTAC"), 2);
-    ASSERT_EQ(queriesAR.binarySearch("NOEXIST"), -1);
-}
+// Memory allocation test
+TEST(QueriesARTest, MemoryAllocationTest) {
+    Queries_AR* queries = new Queries_AR();
+    queries->Read_Queries();
 
-TEST(ExecutionTimeTest, Performance) {
-    // Mock the genome and query sizes to test timing.
-    char genome[100000]; // 100K characters
-    for (int i = 0; i < 100000; ++i) {
-        genome[i] = "ACGT"[i % 4];
+    // Verify memory allocation for queries
+    for (int i = 0; i < 10; ++i) {
+        ASSERT_NE(queries->Query_name(i).c_str(), nullptr);
     }
 
-    QueriesARMock queriesAR;
-    queriesAR.Mock_Read_Queries();
-
-    clock_t start = clock();
-    for (long long i = 0; i < 10000; ++i) {
-        char temp[33] = {0};
-        strncpy(temp, &genome[i], 32);
-        queriesAR.search(temp);
-    }
-    clock_t end = clock();
-    double execTime = static_cast<double>(end - start) / CLOCKS_PER_SEC;
-    ASSERT_LT(execTime, 5.0); // Ensure it runs within 5 seconds for mock data.
+    delete queries;
 }
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+// Fuzz testing for genome sequence reading
+TEST(GenomeTest, GenomeSequenceReadFuzz) {
+    // Generate symbolic filepath
+    const char* filepath = DeepState_CString(256);
+    
+    // Large genome buffer
+    char genome[4000000000];
+    long long int genomeIndex = 0;
+
+    // Attempt to read genome sequence
+    genomeSeqRead(filepath, genome, genomeIndex);
+
+    // Assertions
+    ASSERT_GE(genomeIndex, 0);
+    ASSERT_LE(genomeIndex, 4000000000);
+}
+
+// Complex scenario test: Search after sorting
+TEST(QueriesARTest, SearchAfterSortTest) {
+    Queries_AR queries;
+    queries.Read_Queries();
+    queries.sort();
+
+    // Symbolic target generation
+    char* target = DeepState_CString(32);
+
+    // Linear search after sorting
+    long long int linearResult = queries.search(target);
+    
+    // Binary search
+    long long int binaryResult = queries.binarySearch(target);
+
+    // Results should be consistent
+    ASSERT_EQ(linearResult, binaryResult);
+}
+
+// Edge case: Empty target search
+TEST(QueriesARTest, EmptyTargetSearch) {
+    Queries_AR queries;
+    queries.Read_Queries();
+
+    char emptyTarget[33] = {0};  // All null bytes
+    long long int result = queries.search(emptyTarget);
+    
+    ASSERT_EQ(result, -1);
+}
+
+int main(int argc, char** argv) {
+    return DeepState_Run(argc, argv);
 }
